@@ -1,19 +1,18 @@
-/* loader.S */
+#include "multiboot.h"
+
+.text
+.code32                 /* 32bit-protectmode */
+.intel_syntax noprefix  /* Intel-style, not use AT&T-style */
+
 .global _start
-.section .text
 _start:
-    /* GRUBはカーネルをロードした後、エントリポイントを指示します */
-    /* _start はカーネルのエントリポイントです */
+        jmp entry
+        .align 4
+        .long MULTIBOOT_HEADER_MAGIC
+        .long MULTIBOOT_HEADER_FLAGS
+        .long MULTIBOOT_HEADER_CHECKSUM
 
-    cli                          /* 割り込み禁止 */
-    cld                          /* 文字列命令に対して方向フラグをクリア */
-
-    mov $0x0, %ebx              /* グラブの引数を設定 */
-    mov $0x0, %ecx
-    mov $0x0, %edx
-    mov $0x0, %esi
-
-    /* カーネルのメイン関数へジャンプ */
-    call kernel_main
-
-    hlt                          /* 無限ループ */
+entry:
+        push    ebx   /* push multiboot_info structure pointer */
+        push    eax   /* push MBOOT_HEADER_MAGIC */
+        jmp     main  /* jmp kernel main */
