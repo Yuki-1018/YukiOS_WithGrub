@@ -1,4 +1,6 @@
 // kernel.c
+#include "multiboot.h"
+
 void kernel_main() {
     // VGAテキストモードにアクセスしてメッセージを表示
     const char *message = "Welcome to Yuki OS Kernel!";
