@@ -1,32 +1,21 @@
-# Makefile
+CC     = gcc
+CFLAGS = -pipe -ffreestanding -fno-common -fno-builtin \
+         -fomit-frame-pointer -Os -Wall -c
+LD     = ld -nostdlib --oformat binary
 
-CC = i686-elf-gcc
-ASM = nasm
-LD = i686-elf-ld
-GRUB = grub-mkrescue
+all: kernel.elf
 
-CFLAGS = -ffreestanding -O2 -Wall -Wextra -std=gnu99
-ASMFLAGS = -f elf32
-LDFLAGS = -ffreestanding -O2 -nostdlib -lgcc -T linker.ld
-
-OBJ = loader.o kernel.o
-
-all: yuki_os.iso
+kernel.elf: kernel.o loader.o
+	$(LD) -Ttext=0x100000 --oformat elf32-i386 -o kernel.elf \
+	loader.o kernel.o
 
 loader.o: loader.S
-	$(ASM) loader.S -o loader.o
+	$(CC) $(CFLAGS) -o loader.o loader.S
 
-kernel.o: kernel.c
-	$(CC) $(CFLAGS) -c kernel.c -o kernel.o
+%.o: %.c
+	$(CC) $(CFLAGS) -masm=intel $*.c
 
-yuki_os.bin: $(OBJ)
-	$(LD) $(LDFLAGS) $(OBJ) -o yuki_os.bin
-
-iso: yuki_os.bin
-	mkdir -p iso/boot/grub
-	cp yuki_os.bin iso/boot/
-	cp grub.cfg iso/boot/grub/
-	$(GRUB) -o yuki_os.iso iso/
-
+.PHONY: clean
 clean:
-	rm -f *.o *.bin *.iso
+	rm -f *.o
+	rm -f *.elf
